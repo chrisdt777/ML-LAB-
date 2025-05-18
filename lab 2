@@ -1,0 +1,34 @@
+#Implement Linear and Multi-Linear Regression algorithm using appropriate dataset
+
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.datasets import fetch_california_housing
+
+# Load California Housing dataset
+california_housing = fetch_california_housing()
+
+# Create DataFrame for features and Series for target
+X = pd.DataFrame(california_housing.data, columns=california_housing.feature_names)
+y = pd.Series(california_housing.target)
+
+# Select multiple features (can extend to more)
+X = X[['MedInc', 'AveRooms']]
+
+# Split into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialize and fit the model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Predict target values
+y_pred = model.predict(X_test)
+
+# Display first few predictions
+results = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
+print("Multiple Linear Regression Results:")
+print(results.head())
