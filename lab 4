@@ -1,0 +1,76 @@
+#ID3
+import pandas as pd
+import math
+
+# Input Data: PlayTennis Dataset
+data = {
+    'Outlook': ['Sunny', 'Sunny', 'Overcast', 'Rainy', 'Rainy', 'Rainy', 'Overcast',
+                'Sunny', 'Sunny', 'Rainy', 'Sunny', 'Overcast', 'Overcast', 'Rainy'],
+    'Temperature': ['Hot', 'Hot', 'Hot', 'Mild', 'Cool', 'Cool', 'Cool',
+                    'Mild', 'Cool', 'Mild', 'Mild', 'Mild', 'Hot', 'Mild'],
+    'Humidity': ['High', 'High', 'High', 'High', 'Normal', 'Normal', 'Normal',
+                 'High', 'Normal', 'Normal', 'Normal', 'High', 'Normal', 'High'],
+    'Windy': ['Weak', 'Strong', 'Weak', 'Weak', 'Weak', 'Strong', 'Strong',
+              'Weak', 'Weak', 'Weak', 'Strong', 'Strong', 'Weak', 'Strong'],
+    'PlayTennis': ['No', 'No', 'Yes', 'Yes', 'Yes', 'No', 'Yes',
+                   'No', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'No']
+}
+
+df = pd.DataFrame(data)
+
+# Function to calculate entropy
+def entropy(data):
+    total = len(data)
+    counts = data.value_counts()
+    entropy_value = 0
+    for count in counts:
+        probability = count / total
+        entropy_value -= probability * math.log2(probability)
+    return entropy_value
+
+# Function to calculate information gain
+def information_gain(data, feature, target):
+    total_entropy = entropy(data[target])
+    feature_values = data[feature].unique()
+    weighted_entropy = 0
+    for value in feature_values:
+        subset = data[data[feature] == value]
+        weighted_entropy += (len(subset) / len(data)) * entropy(subset[target])
+    return total_entropy - weighted_entropy
+
+# Function to find the best feature to split on
+def best_split(data, target):
+    features = data.drop(columns=[target]).columns
+    best_feature = None
+    best_gain = -1
+    for feature in features:
+        gain = information_gain(data, feature, target)
+        if gain > best_gain:
+            best_gain = gain
+            best_feature = feature
+    return best_feature
+
+# Recursive function to build the decision tree
+def build_tree(data, target):
+    # If all values are the same, return that value
+    if len(data[target].unique()) == 1:
+        return data[target].iloc[0]
+    
+    # If no features left to split
+    if len(data.columns) == 1:
+        return data[target].mode()[0]
+    
+    best_feature = best_split(data, target)
+    tree = {best_feature: {}}
+    
+    for value in data[best_feature].unique():
+        subset = data[data[best_feature] == value].drop(columns=[best_feature])
+        subtree = build_tree(subset, target)
+        tree[best_feature][value] = subtree
+    
+    return tree
+
+# Build and print the decision tree
+tree = build_tree(df, target='PlayTennis')
+print("Decision Tree:")
+print(tree)
